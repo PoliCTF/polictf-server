@@ -12,3 +12,10 @@ The following commands will have it up and running as a proper daemon:
     scoreboard -c /path/to/scoreabord.config
     chown polictf-daemons:www-data /path/to/scoreboard-fcgi-socket
     chmod 0660 /path/to/scoreboard-fcgi-socket
+
+## Gameboard
+
+The gameboard for the 2015 polictf is available here:
+`https://github.com/PoliCTF/gameboard2015/tree/source`
+(source branch)
+
