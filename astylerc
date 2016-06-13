@@ -1,0 +1,12 @@
+style=java
+indent=spaces=4
+pad-oper
+break-blocks
+pad-header
+unpad-paren
+add-brackets
+convert-tabs
+close-templates
+align-pointer=name
+align-reference=name
+
