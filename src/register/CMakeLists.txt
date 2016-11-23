@@ -1,11 +1,14 @@
 find_package(Qt4 4.6 REQUIRED QtCore QtSql QtNetwork)
 find_package(CppCMS REQUIRED)
+find_package(MySQL REQUIRED)
 
 add_subdirectory(smtp-qt)
 
 set(REGISTRATION_SRCS
     main.cpp
     frmIscrizione.cpp
+    frmPasswordRecovery.cpp
+    frmPasswordRecoveryInit.cpp
     dbcontroller.cpp
     mailer.cpp
 )

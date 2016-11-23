@@ -15,7 +15,7 @@ frmIscrizione::frmIscrizione():
     website("^(?:https?://.+)?$"),
     rules(),
     email(), //è un widget di tipo email, quindi non serve specificare una regexp
-    sshkey("^ssh-(rsa|dsa|ecdsa) [a-zA-Z/0-9+=]{3,}\\s*[@a-zA-Z0-9-_]*$"),
+    /* sshkey("^ssh-(rsa|dsa|ecdsa) [a-zA-Z/0-9+=]{3,}\\s*[@a-zA-Z0-9-_]*$"), */
     size(),
     age_youngest(),
     age_oldest()
@@ -23,7 +23,7 @@ frmIscrizione::frmIscrizione():
     name.name("name");
     email.name("email");
     password.name("password");
-    sshkey.name("sshkey");
+    /* sshkey.name("sshkey"); */
     rules.name("rules");
     country.name("country");
     website.name("website");
@@ -38,7 +38,7 @@ frmIscrizione::frmIscrizione():
     add(country);
     add(website);
 
-    add(sshkey);
+    /* add(sshkey); */
     add(size);
     add(age_youngest);
     add(age_oldest);
@@ -64,21 +64,23 @@ bool frmIscrizione::validate() {
     if (!country.validate()) {
         errors.push_back("Please provide a valid country name");
     }
-    if (!sshkey.validate()) {
-        errors.push_back("Please type a valid ssh public key in format ssh-rsa KEY [name].");
-    }
-
+    
     if (!website.validate()) {
         errors.push_back("Please type a valid URL.");
     }
 
+    /* if (!sshkey.validate()) {
+        errors.push_back("Please type a valid ssh public key in format ssh-rsa KEY [name].");
+    } */
+
     if (!form::validate()) {
+        errors.push_back("Form did not validate.");
         return false;
     }
 
-    if (!sshkey.set()) {
+    /* if (!sshkey.set()) {
         sshkey.value("");
-    }
+    } */
 
     if (!size.set()) {
         size.value(-1);

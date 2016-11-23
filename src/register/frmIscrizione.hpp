@@ -15,7 +15,7 @@ public:
     cppcms::widgets::regex_field website;
     cppcms::widgets::checkbox rules;
     cppcms::widgets::email email;
-    cppcms::widgets::regex_field sshkey;
+    /* cppcms::widgets::regex_field sshkey; */
     cppcms::widgets::numeric<int> size, age_youngest, age_oldest;
 };
 

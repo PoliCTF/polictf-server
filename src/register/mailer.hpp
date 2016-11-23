@@ -2,6 +2,9 @@
 #define REGISTER_MAILER_H
 
 #include "frmIscrizione.hpp"
+#include "frmPasswordRecoveryInit.hpp"
+
+#include "smtp-qt/emailaddress.h"
 
 #include <cppcms/json.h>
 #include <cppcms/service.h>
@@ -11,7 +14,8 @@
 class mailer {
 public:
     static mailer &getInstance();
-    void sendEmail(std::string &uid, frmIscrizione &frm);
+    bool sendConfirmEmail(std::string &uid, frmIscrizione &frm);
+    bool sendPasswordRecoveryEmail(std::string &uid, frmPasswordRecoveryInit &frm);
 
 protected:
     mailer();
@@ -21,9 +25,19 @@ protected:
     QString smtppsw;
     QString mailfromaddr;
     QString mailfromname;
-    QString subject;
-    QString text;
     bool smtpauth;
+
+    QString confirm_registration_text;
+    QString confirm_registration_subject;
+
+    QString password_recovery_text;
+    QString password_recovery_subject;
+
+    std::string password_recovery_url;
+
+private:
+    bool send(QString& txt, QString& subject, EmailAddress& receiver);
+
 };
 
 #endif

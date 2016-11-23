@@ -39,7 +39,7 @@ dbcontroller::dbcontroller() {
     this->db.setPassword(QString::fromStdString(settings.get<std::string>("db.password")));
 
     if (!this->db.open()) {
-        BOOSTER_ERROR("registration") << "Error while connecting to database.";
+        BOOSTER_ERROR("registration") << "Error while connecting to database: " << db.lastError().text().toStdString();
     }
 }
 
@@ -57,7 +57,14 @@ bool dbcontroller::handleError(std::shared_ptr<QSqlQuery> q) {
         db.open();
         return true;
     } else {
-        BOOSTER_ERROR("registration") << "Error from database:" << q->lastError().driverText().toStdString(); //altri errori, potenzialmente dovuti alla query/dati/altri problemi sul db. Fermiamo la richiesta.
+        std::stringstream ss;
+        ss << "Error from database: ";
+        ss << q->lastError().driverText().toStdString();
+        ss << " (";
+        ss << q->lastError().databaseText().toStdString();
+        ss << ")";
+        BOOSTER_ERROR("registration") << ss.str();
+        //altri errori, potenzialmente dovuti alla query/dati/altri problemi sul db. Fermiamo la richiesta.
         return false;
     }
 }
@@ -162,11 +169,12 @@ bool dbcontroller::insert(frmIscrizione *frm , std::string *code) {
     std::shared_ptr<QSqlQuery> stmt(new QSqlQuery(this->db));
 
     do {
-        stmt->prepare("INSERT INTO team(name,email,password,sshkey,website,ip,ua,confirmcode,country,size,minage,maxage) VALUES(:nome,:email,SHA2(:password,512),:sshkey,:website,:ip,:useragent,:confirmcode,:country,:size,:age_y,:age_o);");
-        stmt->bindValue("nome", QString::fromStdString(frm->name.value()));
+        /* removed sshkey */
+        stmt->prepare("INSERT INTO team(name,email,password,website,ip,ua,confirmcode,country,size,minage,maxage) VALUES(:name,:email,SHA2(:password,512),:website,:ip,:ua,:confirmcode,:country,:size,:age_y,:age_o);");
+        stmt->bindValue("name", QString::fromStdString(frm->name.value()));
         stmt->bindValue("email", QString::fromStdString(frm->email.value()));
         stmt->bindValue("password", QString::fromStdString(frm->password.value()));
-        stmt->bindValue("sshkey", QString::fromStdString(frm->sshkey.value()));
+        /* stmt->bindValue("sshkey", QString::fromStdString(frm->sshkey.value())); */
         stmt->bindValue("website", QString::fromStdString(frm->website.value()));
         stmt->bindValue("ip", QString::fromStdString(cur_ctx->request().remote_addr()));
         stmt->bindValue("ua", QString::fromStdString(cur_ctx->request().http_user_agent()));
@@ -188,6 +196,31 @@ bool dbcontroller::insert(frmIscrizione *frm , std::string *code) {
     ss << "ipspammer_" << cur_ctx->request().remote_addr();
     cur_ctx->cache().rise(ss.str());
     return ((stmt->numRowsAffected()) == 1);
+}
+
+bool dbcontroller::initReset(frmPasswordRecoveryInit *frm, std::string *token) {
+    std::shared_ptr<QSqlQuery> stmt(new QSqlQuery(this->db));
+
+    do {
+        stmt->prepare("UPDATE team SET reset_token=:token, reset_timestamp=NOW() WHERE email=:email;");
+        stmt->bindValue("token", QString::fromStdString(*token));
+        stmt->bindValue("email", QString::fromStdString(frm->email.value()));
+    } while(!stmt->exec() && handleError(stmt));
+
+    return stmt->numRowsAffected() == 1;
+}
+
+bool dbcontroller::resetPassword(frmPasswordRecovery *frm) {
+    std::shared_ptr<QSqlQuery> stmt(new QSqlQuery(this->db));
+
+    do {
+        stmt->prepare("UPDATE team SET password=:password WHERE email=:email AND reset_token=:token AND reset_timestamp > DATE_SUB(NOW(), INTERVAL 1 HOUR);");
+        stmt->bindValue(":password", QString::fromStdString(frm->password.value()));
+        stmt->bindValue(":email", QString::fromStdString(frm->email.value()));
+        stmt->bindValue(":token", QString::fromStdString(frm->token.value()));
+    } while(!stmt->exec() && handleError(stmt));
+
+    return stmt->numRowsAffected() == 1;
 }
 
 dbcontroller::~dbcontroller() {

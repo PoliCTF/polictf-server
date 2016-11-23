@@ -1,4 +1,6 @@
 #include "frmIscrizione.hpp"
+#include "frmPasswordRecovery.hpp"
+#include "frmPasswordRecoveryInit.hpp"
 #include "dbcontroller.hpp"
 #include "mailer.hpp"
 
@@ -59,6 +61,8 @@ public:
     iscrizione(cppcms::service &srv): cppcms::application(srv) {
         dispatcher().assign("/subscribe", &iscrizione::subscribe, this);
         dispatcher().assign("/confirm/([a-zA-Z0-9_-]+)", &iscrizione::confirm, this, 1);
+        dispatcher().assign("/reset/init", &iscrizione::init_password_reset, this);
+        dispatcher().assign("/reset/token", &iscrizione::password_reset, this);
     }
 
     void confirm(std::string code) {
@@ -74,6 +78,67 @@ public:
         }
 
         response().make_error_response(302, "Redirect");
+    }
+
+    void init_password_reset() {
+    	ASSERT_METHOD(POST);
+
+    	mailer &mail = mailer::getInstance();
+    	cur_ctx = &context();
+    	cppcms::json::value reply;
+
+    	std::shared_ptr<dbcontroller> dbc = dbcontroller::getInstance();
+    	std::string uniqid = randstr(18);
+    	if (uniqid.empty()) {
+            response().make_error_response(503, "The server is mumbling");
+            return;
+        }
+
+        frmPasswordRecoveryInit frm;
+        frm.load(context());
+        reply["done"] = false;
+
+        response().set_header(
+        	"Access-Control-Allow-Origin", settings().get<std::string>("service.static-domain")
+        );
+        response().content_type("application/json");
+
+        if(!frm.validate()) {
+        	reply["errors"] = frm.errors;
+        } else if(dbc->initReset(&frm, &uniqid) && !mail.sendPasswordRecoveryEmail(uniqid, frm)) {
+                reply["errors"][0] = "There was an error sending the password recovery email.";
+        } else {
+        	reply["done"] = true;
+        }
+
+        response().out() << reply;
+    }
+
+    void password_reset() {
+    	ASSERT_METHOD(POST);
+
+        cur_ctx = &context();
+        std::shared_ptr<dbcontroller> dbc = dbcontroller::getInstance();
+        cppcms::json::value reply;
+
+        frmPasswordRecovery frm;
+        frm.load(context());
+        reply["done"] = false;
+
+		response().set_header(
+        	"Access-Control-Allow-Origin", settings().get<std::string>("service.static-domain")
+        );
+        response().content_type("application/json");
+
+        if(!frm.validate()) {
+        	reply["errors"] = frm.errors;
+        } else if(!dbc->resetPassword(&frm)) {
+        	reply["errors"][0] = "There was a problem during DB access.";
+        } else {
+        	reply["done"] = true;
+        }
+
+        response().out() << reply;
     }
 
     void subscribe() {
@@ -103,8 +168,9 @@ public:
             reply["errors"] =  frm.errors;
         } else if (!dbc->insert(&frm, &uniqid)) {
             reply["errors"][0] =  "There was a problem during DB access.";
+        } else if (!mail.sendConfirmEmail(uniqid, frm)) {
+            reply["errors"][0] = "There was an error sending the confirmation email. Please contact the staff for assistance.";
         } else {
-            mail.sendEmail(uniqid, frm);
             reply["done"] = true;
         }
 

@@ -2,6 +2,8 @@
 #define REGISTER_DBCONTROLLER_H
 
 #include "frmIscrizione.hpp"
+#include "frmPasswordRecovery.hpp"
+#include "frmPasswordRecoveryInit.hpp"
 
 #include <cppcms/json.h>
 #include <cppcms/http_context.h>
@@ -22,6 +24,8 @@ public:
 
     bool checkDuplicates(std::string name, std::string email);
     bool insert(frmIscrizione *frm, std::string *uid);
+    bool initReset(frmPasswordRecoveryInit *frm, std::string *token);
+    bool resetPassword(frmPasswordRecovery *frm);
     bool confirm(std::string *code);
     bool isSpammer();
 
