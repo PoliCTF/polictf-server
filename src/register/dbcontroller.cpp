@@ -102,7 +102,7 @@ bool dbcontroller::isSpammer() {
 
     do {
         stmt->prepare("SELECT COUNT(*) FROM team WHERE ip=:ip GROUP BY ip;");
-        stmt->bindValue("ip", QString::fromStdString(ip));
+        stmt->bindValue(":ip", QString::fromStdString(ip));
     } while (!stmt->exec() && handleError(stmt)); //un po acrobatico, ma non vedo controindicazioni :) se handleError ritorna true si può riprovare.
 
     if (!stmt->isActive()) {
@@ -142,8 +142,8 @@ bool dbcontroller::checkDuplicates(std::string name, std::string email) {
 
     do {
         stmt->prepare("SELECT name,email FROM team WHERE name=:nomesquadra or email=:email;");
-        stmt->bindValue("nomesquadra", QString::fromStdString(name));
-        stmt->bindValue("email", QString::fromStdString(email));
+        stmt->bindValue(":nomesquadra", QString::fromStdString(name));
+        stmt->bindValue(":email", QString::fromStdString(email));
     } while (!stmt->exec() && handleError(stmt)); //un po acrobatico, ma non vedo controindicazioni :) se handleError ritorna true si può riprovare.
 
     if (!stmt->isActive()) {
@@ -171,18 +171,18 @@ bool dbcontroller::insert(frmIscrizione *frm , std::string *code) {
     do {
         /* removed sshkey */
         stmt->prepare("INSERT INTO team(name,email,password,website,ip,ua,confirmcode,country,size,minage,maxage) VALUES(:name,:email,SHA2(:password,512),:website,:ip,:ua,:confirmcode,:country,:size,:age_y,:age_o);");
-        stmt->bindValue("name", QString::fromStdString(frm->name.value()));
-        stmt->bindValue("email", QString::fromStdString(frm->email.value()));
-        stmt->bindValue("password", QString::fromStdString(frm->password.value()));
+        stmt->bindValue(":name", QString::fromStdString(frm->name.value()));
+        stmt->bindValue(":email", QString::fromStdString(frm->email.value()));
+        stmt->bindValue(":password", QString::fromStdString(frm->password.value()));
         /* stmt->bindValue("sshkey", QString::fromStdString(frm->sshkey.value())); */
-        stmt->bindValue("website", QString::fromStdString(frm->website.value()));
-        stmt->bindValue("ip", QString::fromStdString(cur_ctx->request().remote_addr()));
-        stmt->bindValue("ua", QString::fromStdString(cur_ctx->request().http_user_agent()));
-        stmt->bindValue("confirmcode", QString::fromStdString(*code));
-        stmt->bindValue("country", QString::fromStdString(frm->country.value()));
-        stmt->bindValue("size", QString::number(frm->size.value()));
-        stmt->bindValue("age_y", QString::number(frm->age_youngest.value()));
-        stmt->bindValue("age_o", QString::number(frm->age_oldest.value()));
+        stmt->bindValue(":website", QString::fromStdString(frm->website.value()));
+        stmt->bindValue(":ip", QString::fromStdString(cur_ctx->request().remote_addr()));
+        stmt->bindValue(":ua", QString::fromStdString(cur_ctx->request().http_user_agent()));
+        stmt->bindValue(":confirmcode", QString::fromStdString(*code));
+        stmt->bindValue(":country", QString::fromStdString(frm->country.value()));
+        stmt->bindValue(":size", QString::number(frm->size.value()));
+        stmt->bindValue(":age_y", QString::number(frm->age_youngest.value()));
+        stmt->bindValue(":age_o", QString::number(frm->age_oldest.value()));
     } while (!stmt->exec() && handleError(stmt));
 
     std::stringstream ss;
@@ -203,8 +203,8 @@ bool dbcontroller::initReset(frmPasswordRecoveryInit *frm, std::string *token) {
 
     do {
         stmt->prepare("UPDATE team SET reset_token=:token, reset_timestamp=NOW() WHERE email=:email;");
-        stmt->bindValue("token", QString::fromStdString(*token));
-        stmt->bindValue("email", QString::fromStdString(frm->email.value()));
+        stmt->bindValue(":token", QString::fromStdString(*token));
+        stmt->bindValue(":email", QString::fromStdString(frm->email.value()));
     } while(!stmt->exec() && handleError(stmt));
 
     return stmt->numRowsAffected() == 1;
@@ -241,9 +241,9 @@ bool dbcontroller::confirm(std::string *code) {
 
     do {
         stmt->prepare("UPDATE team SET confirmip=:ip, confirmua=:ua WHERE confirmcode=:code AND confirmip is null");
-        stmt->bindValue("ip", QString::fromStdString(cur_ctx->request().remote_addr()));
-        stmt->bindValue("ua", QString::fromStdString(cur_ctx->request().http_user_agent()));
-        stmt->bindValue("code", QString::fromStdString(*code));
+        stmt->bindValue(":ip", QString::fromStdString(cur_ctx->request().remote_addr()));
+        stmt->bindValue(":ua", QString::fromStdString(cur_ctx->request().http_user_agent()));
+        stmt->bindValue(":code", QString::fromStdString(*code));
     } while (!stmt->exec() && handleError(stmt));
 
     if (!stmt->isActive()) {
