@@ -176,7 +176,7 @@ public:
     }
 
     void logout() {
-        ASSERT_METHOD(GET);
+        ASSERT_METHOD(POST);
 
         noncacheable();
         withCORS(Credentials::YES);
