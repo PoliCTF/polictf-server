@@ -19,3 +19,13 @@ The gameboard for the 2015 polictf is available here:
 `https://github.com/PoliCTF/gameboard2015/tree/source`
 (source branch)
 
+## Scoreboard API
+```
+"/common/status", &scoreboard::commonstatus
+"/common/challenge/([0-9]+)", &scoreboard::challenge
+"/common/challenges", &scoreboard::challenges
+"/team/status", &scoreboard::teamstatus
+"/team/submit", &scoreboard::teamsubmit
+"/login", &scoreboard::login
+"/logout", &scoreboard::logout
+```

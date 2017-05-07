@@ -342,7 +342,7 @@ std::string dbcontroller::getChallenge(int id) {
         },
         [=](std::shared_ptr<QSqlQuery> stmt) {
             if (!stmt->prepare(
-                "SELECT file, description, chall.name, cat.name as catname "
+                "SELECT file, description, points, chall.name, cat.name as catname "
                     "from challenges as chall, categories as cat "
                     "where idchallenge=:id and hidden=0 and category=idcat and opentime < NOW();"
             )) return false;
@@ -360,6 +360,7 @@ std::string dbcontroller::getChallenge(int id) {
             ret["file"] = stmt->record().value("file").toString().toStdString();
             ret["name"] = stmt->record().value("name").toString().toStdString();
             ret["category"] = stmt->record().value("catname").toString().toStdString();
+            ret["points"] = stmt->record().value("points").toInt();
         }
     );
 }

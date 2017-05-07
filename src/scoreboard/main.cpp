@@ -24,6 +24,7 @@
 __thread cppcms::http::context *cur_ctx = NULL;
 
 #define ASSERT_METHOD(method) if (!checkMethod(#method)) return
+#define HANDLECORSPREFLIGHT if(handleCORSPreflight()) return
 
 //c'è un istanza di questa classe per ogni thread.
 class scoreboard: public cppcms::application {
@@ -99,6 +100,7 @@ public:
     }
 
     void teamsubmit() {
+        HANDLECORSPREFLIGHT;
         ASSERT_METHOD(POST);
 
         noncacheable();
@@ -154,6 +156,7 @@ public:
     }
 
     void login() {
+        HANDLECORSPREFLIGHT;
         ASSERT_METHOD(POST);
 
         noncacheable();
@@ -176,6 +179,7 @@ public:
     }
 
     void logout() {
+        HANDLECORSPREFLIGHT;
         ASSERT_METHOD(POST);
 
         noncacheable();
@@ -232,6 +236,19 @@ private:
             return false;
         }
         return true;
+    }
+
+    // returns true if the request was a OPTIONS one, and it's been handled
+    bool handleCORSPreflight(){
+         if (request().request_method() == "OPTIONS") {
+            response().set_header(
+                "Access-Control-Allow-Origin", settings().get<std::string>("service.static-domain")
+            );
+            response().set_header("Access-Control-Allow-Credentials", "true");
+            response().set_header("Access-Control-Allow-Headers", "Content-Type");
+            return true;
+         }
+         return false;
     }
 
     void withCORS(Credentials credentials) {
