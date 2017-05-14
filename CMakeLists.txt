@@ -20,4 +20,5 @@ set(SECURE_LINKER_FLAGS
     -Wl,-z,relro,-z,now
 )
 
-add_subdirectory(src/)
+add_subdirectory(src/register register)
+add_subdirectory(src/scoreboard scoreboard)

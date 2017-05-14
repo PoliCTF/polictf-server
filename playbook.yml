@@ -1,0 +1,73 @@
+---
+- hosts: all
+  become: true
+  remote_user: root
+  tasks:
+  - name: Install basic env
+    apt: name={{ item }} state=latest
+    with_items:
+      - vim
+      - git
+      - nginx
+      - mysql-server
+      - build-essential
+  
+  - name: Install polictf-server dependences
+    apt: name={{ item }} state=latest
+    with_items:
+      - cmake
+      - libpcre3-dev
+      - zlib1g-dev
+      - libgcrypt11-dev
+      - libicu-dev
+      - libqt4-dev
+      - libqt4-sql
+      - libqt4-sql-mysql
+
+  - name: Install apt packages ansible needs to handle the db
+    apt: name={{ item }} state=latest
+    with_items:
+      - libmysqlclient-dev
+      - python-mysqldb
+
+  - name: Create a new database with name 'polictf'
+    mysql_db:
+      name: polictf
+      state: present
+
+  - name: Create polictf database user
+    mysql_user:
+      name: polictf
+      password: polictf
+      priv: 'polictf.*:ALL'
+      state: present
+
+  - name: Creates logs folder
+    file: path=/var/log/polictf/ state=directory
+
+  - name: Copy polictf config
+    copy:
+      src: devconf/scoreboard.js
+      dest: /root/polictf/
+
+  - name: Copy polictf initial dump file
+    copy:
+      src: devconf/dbdump
+      dest: /tmp
+
+  - name: Restore polictf database from dump
+    mysql_db:
+      name: polictf
+      state: import
+      target: /tmp/dbdump
+
+  - name: upload and uncompress polictf-server
+    unarchive:
+      src: build/polictf-server.tar.gz
+      dest: /root
+
+  - name: ensure nginx is enabled at boot
+    service: name=nginx state=started enabled=yes
+
+  - name: ensure mysql-server is enabled at boot
+    service: name=mysql state=started enabled=yes

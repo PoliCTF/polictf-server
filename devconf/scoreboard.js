@@ -2,10 +2,11 @@
   "service": {
     "api": "http",
     "port": 8089,
+    "ip": "0.0.0.0",
     "disable_xpowered_by": true,
     "allow-save-solved": true,
     "static-domain": "http://localhost:8080", //used for CORS
-    "rate-limit-seconds": 2
+    "rate-limit-seconds": 1
   },
 
   "http": {
