@@ -342,7 +342,7 @@ std::string dbcontroller::getChallenge(int id) {
         },
         [=](std::shared_ptr<QSqlQuery> stmt) {
             if (!stmt->prepare(
-                "SELECT file, description, points, chall.name, cat.name as catname "
+                "SELECT file, description, points, metadata, chall.name, cat.name as catname "
                     "from challenges as chall, categories as cat "
                     "where idchallenge=:id and hidden=0 and category=idcat and opentime < NOW();"
             )) return false;
@@ -361,6 +361,7 @@ std::string dbcontroller::getChallenge(int id) {
             ret["name"] = stmt->record().value("name").toString().toStdString();
             ret["category"] = stmt->record().value("catname").toString().toStdString();
             ret["points"] = stmt->record().value("points").toInt();
+            ret["metadata"] = stmt->record().value("metadata").toString().toStdString();
         }
     );
 }
@@ -452,7 +453,7 @@ teamSolutionList dbcontroller::fetchSolutionsForTeam(int teamId) {
     std::shared_ptr<QSqlQuery> sqlQuery(new QSqlQuery(this->db));
 
     bool ok = doQuery(sqlQuery, [&](std::shared_ptr<QSqlQuery> stmt) {
-        if (!stmt->prepare("SELECT solutions.idchallenge as idchallenge,earnedpoints,is_flash from solutions inner join challenges on (challenges.idchallenge=solutions.idchallenge) where idteam=:id")) return false;
+        if (!stmt->prepare("SELECT solutions.idchallenge as idchallenge,bonus,points,is_flash from solutions inner join challenges on (challenges.idchallenge=solutions.idchallenge) where idteam=:id")) return false;
         stmt->bindValue("id", teamId);
         return true;
     });
@@ -473,7 +474,8 @@ teamSolutionList dbcontroller::fetchSolutionsForTeam(int teamId) {
 
     while (sqlQuery->next()) {
         teamSolution solution;
-        solution.solutionPoints = sqlQuery->record().value("earnedpoints").toInt();
+        solution.bonus = sqlQuery->record().value("bonus").toInt();
+        solution.points = sqlQuery->record().value("points").toInt();
         solution.id = sqlQuery->record().value("idchallenge").toInt();
         solution.flashChallenge = sqlQuery->record().value("is_flash").toInt();
         solutions.challenges.push_back(solution);

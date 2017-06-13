@@ -34,11 +34,11 @@ struct teamip : public cppcms::serializable {
 
 struct teamSolution : public cppcms::serializable {
     int id;
-
-    int solutionPoints;
+    int bonus;
+    int points;
     int flashChallenge;
     void serialize(cppcms::archive &a) {
-        a & id & flashChallenge & solutionPoints;
+        a & id & flashChallenge & bonus & points;
     }
 };
 

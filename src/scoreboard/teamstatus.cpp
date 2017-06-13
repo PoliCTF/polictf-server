@@ -49,12 +49,14 @@ std::string TeamStatus::getJson() {
     for (int chall_index = 0; chall_index < challs_count; chall_index++) {
         if (solutions.challenges.at(chall_index).flashChallenge) {
             object["statosquadra"]["flashch_solved"][flashchall_index] = solutions.challenges.at(chall_index).id;
-            flashchall_points += solutions.challenges.at(chall_index).solutionPoints;
+            //TODO FIXME
+            flashchall_points += solutions.challenges.at(chall_index).points;
             ++flashchall_index;
             continue;
         }
 
-        object["solved"][chall_index]["points"] = solutions.challenges.at(chall_index).solutionPoints;
+        object["solved"][chall_index]["bonus"] = solutions.challenges.at(chall_index).bonus;
+        object["solved"][chall_index]["points"] = solutions.challenges.at(chall_index).points;
         object["solved"][chall_index]["id"] = solutions.challenges.at(chall_index).id;
     }
 
