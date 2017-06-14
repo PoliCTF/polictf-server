@@ -377,7 +377,7 @@ std::string dbcontroller::getScores() {
 
             while (stmt->next()) {
                 ret[i]["name"] = stmt->record().value("name").toString().toStdString();
-                ret[i]["points"] = stmt->record().value("points").toInt();
+                ret[i]["points"] = stmt->record().value("computed_points").toInt();
                 ret[i]["country"] = stmt->record().value("country").toString().toStdString();
                 ++i;
             }
