@@ -374,7 +374,7 @@ std::string dbcontroller::getScores() {
         },
         [](cppcms::json::value & ret, std::shared_ptr<QSqlQuery> stmt) {
             int i = 0;
-
+            
             while (stmt->next()) {
                 ret[i]["name"] = stmt->record().value("name").toString().toStdString();
                 ret[i]["points"] = stmt->record().value("computed_points").toInt();
