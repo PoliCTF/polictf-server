@@ -544,7 +544,7 @@ teamInfo dbcontroller::fetchTeamInfo(int teamId) {
     std::shared_ptr<QSqlQuery> sqlQuery(new QSqlQuery(this->db));
 
     bool ok = doQuery(sqlQuery, [&](std::shared_ptr<QSqlQuery> stmt) {
-        if (!stmt->prepare("SELECT name,points from team where id=:id")) return false;
+        if (!stmt->prepare("SELECT id, name, computed_points from classifica where id=:id")) return false;
         stmt->bindValue("id", teamId);
         return true;
     });
@@ -561,7 +561,7 @@ teamInfo dbcontroller::fetchTeamInfo(int teamId) {
 
     sqlQuery->next();
     teamInfo.name = sqlQuery->record().value("name").toString().toStdString();
-    teamInfo.points = sqlQuery->record().value("points").toUInt();
+    teamInfo.points = sqlQuery->record().value("computed_points").toUInt();
     cur_ctx->cache().store_data(
         cacheKey.str(), teamInfo, this->makeStringSet(trigger.str()),
         srv->settings().get<int>("cache.timeout.teaminfo")
