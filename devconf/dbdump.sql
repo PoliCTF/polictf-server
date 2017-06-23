@@ -31,7 +31,7 @@ CREATE TABLE `alerts` (
   PRIMARY KEY (`idalert`),
   KEY `fk_recipient` (`recipient`),
   CONSTRAINT `fk_recipient` FOREIGN KEY (`recipient`) REFERENCES `team` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -40,7 +40,7 @@ CREATE TABLE `alerts` (
 
 LOCK TABLES `alerts` WRITE;
 /*!40000 ALTER TABLE `alerts` DISABLE KEYS */;
-INSERT INTO `alerts` VALUES (1,NULL,'challenge1 is now open',12,'2017-05-14 13:27:57'),(8,NULL,'new hint for challenge 1, go check',12,'2017-05-14 13:41:56'),(9,NULL,'this is a very long text. We apologize for it being so long',4,'2017-05-14 13:41:56');
+INSERT INTO `alerts` VALUES (1,NULL,'challenge1 is now open',12,'2017-05-14 13:27:57'),(8,NULL,'new hint for challenge 1, go check',12,'2017-05-14 13:41:56'),(9,NULL,'this is a very long text. We apologize for it being so long',4,'2017-05-14 13:41:56'),(14,1,'Your team solved Challenge2 (pwn)',100,'2017-06-23 11:09:41');
 /*!40000 ALTER TABLE `alerts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -109,7 +109,7 @@ CREATE TABLE `challenges` (
 
 LOCK TABLES `challenges` WRITE;
 /*!40000 ALTER TABLE `challenges` DISABLE KEYS */;
-INSERT INTO `challenges` VALUES (1,'Get the door code to stop the squirrel invasion!','Chocolate Factory','aaaaaaaaaaaaaa.txt',1,'asfdafasgagagsaffa',5000,0,'1970-01-31 23:00:01',NULL,0,2,NULL,NULL),(2,'Challenge2 is wow','Challenge2',NULL,2,'asdafagasfa',3334,0,'1970-01-31 23:00:01',NULL,0,0,NULL,NULL);
+INSERT INTO `challenges` VALUES (1,'Get the door code to stop the squirrel invasion!','Chocolate Factory','aaaaaaaaaaaaaa.txt',1,'asfdafasgagagsaffa',5000,0,'1970-01-31 23:00:01',NULL,0,2,NULL,NULL),(2,'Challenge2 is wow','Challenge2',NULL,2,'asdafagasfa',3334,0,'1970-01-31 23:00:01',NULL,0,6,NULL,NULL);
 /*!40000 ALTER TABLE `challenges` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -150,7 +150,7 @@ CREATE TABLE `classifica_mv` (
 
 LOCK TABLES `classifica_mv` WRITE;
 /*!40000 ALTER TABLE `classifica_mv` DISABLE KEYS */;
-INSERT INTO `classifica_mv` VALUES (1,'Hanoiati','Italy',492),(2,'Team17',NULL,492);
+INSERT INTO `classifica_mv` VALUES (1,'Hanoiati','Italy',953),(2,'Team17',NULL,492);
 /*!40000 ALTER TABLE `classifica_mv` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -217,7 +217,7 @@ CREATE TABLE `solutions` (
   KEY `solvedby` (`idchallenge`,`idteam`),
   CONSTRAINT `fk_solved_challenge` FOREIGN KEY (`idchallenge`) REFERENCES `challenges` (`idchallenge`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_solving_team` FOREIGN KEY (`idteam`) REFERENCES `team` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -226,7 +226,7 @@ CREATE TABLE `solutions` (
 
 LOCK TABLES `solutions` WRITE;
 /*!40000 ALTER TABLE `solutions` DISABLE KEYS */;
-INSERT INTO `solutions` VALUES (1,1,1,'2017-06-14 07:30:49',100,NULL),(2,1,2,'2017-06-14 07:31:39',100,NULL);
+INSERT INTO `solutions` VALUES (1,1,1,'2017-06-14 07:30:49',100,NULL),(2,1,2,'2017-06-14 07:31:39',100,NULL),(8,2,1,'2017-06-23 11:09:41',100,NULL);
 /*!40000 ALTER TABLE `solutions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -311,9 +311,12 @@ sp: BEGIN
     INSERT INTO solutions SET idchallenge=challenge, idteam=teamid,ts=myts;
     set myid = LAST_INSERT_ID();
     
+    # cnt = #solves from all teams
     SET cnt = (SELECT COUNT(*) FROM solutions WHERE idchallenge=challenge and ts < myts);
     
-    # Computing and setting bonus for the current solution
+    # ========================================================
+    # Computing and setting the bonus for the current solution
+    # ========================================================
     
     # base bonus for the challenge (in hundreds)
     SET pts = 100;
@@ -342,11 +345,31 @@ sp: BEGIN
     UPDATE solutions SET bonus = pts WHERE idsolution=myid;
     UPDATE challenges SET solutions=solutions+1 WHERE idchallenge=challenge;
     
-    # UPDATE MATERIALIZED VIEW CLASSIFICA
+	# ========================================================
+    # Updating materialized view classifica
+    # ========================================================
+    
     TRUNCATE TABLE classifica_mv;
     INSERT INTO classifica_mv SELECT * from classifica;
     
-	# Next challenge opening:
+	# ========================================================
+    # Notifiying the team
+    # ========================================================
+
+	insert into alerts set
+		text = concat("Your team solved ",
+					  (select name from challenges where idchallenge=challenge),
+					  " (", (select name from categories
+									where idcat=(select category from challenges
+																 where idchallenge=challenge)),
+					  ")"),
+		recipient = teamid,
+		points = pts
+	;
+    
+	# ========================================================
+    # Opening the next challenge
+    # ========================================================
     
 	# If a challenge has been solved for the first time, automatically open the challenge challenge.nextopen (if any)
     IF(cnt=0) THEN
@@ -356,6 +379,11 @@ sp: BEGIN
 						        from challenges cnew inner join challenges cold
 								     on cnew.idchallenge = cold.nextopen  
 							    where cold.idchallenge=challenge);
+                                
+		IF (newChallenge is NULL) THEN
+			LEAVE sp;
+		END IF;
+        
 		-- Open the challenge
 		update challenges set opentime = now() where idchallenge=newChallenge;
         
@@ -371,16 +399,6 @@ sp: BEGIN
 		;
     END IF;
 
-	insert into alerts set
-		text = concat("Your team solved ",
-					  (select name from challenges where idchallenge=challenge),
-					  " (", (select name from categories
-									where idcat=(select category from challenges
-																 where idchallenge=challenge)),
-					  ")"),
-		recipient = teamid,
-		points = pts
-	;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -452,4 +470,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-06-23 12:40:49
+-- Dump completed on 2017-06-23 13:10:03
