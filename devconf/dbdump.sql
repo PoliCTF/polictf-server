@@ -25,13 +25,13 @@ DROP TABLE IF EXISTS `alerts`;
 CREATE TABLE `alerts` (
   `idalert` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `recipient` int(11) unsigned DEFAULT NULL,
-  `text` text COLLATE utf8_czech_ci NOT NULL,
+  `text` text COLLATE utf8_bin NOT NULL,
   `points` int(11) DEFAULT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`idalert`),
   KEY `fk_recipient` (`recipient`),
   CONSTRAINT `fk_recipient` FOREIGN KEY (`recipient`) REFERENCES `team` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -40,6 +40,7 @@ CREATE TABLE `alerts` (
 
 LOCK TABLES `alerts` WRITE;
 /*!40000 ALTER TABLE `alerts` DISABLE KEYS */;
+INSERT INTO `alerts` VALUES (1,NULL,'challenge1 is now open',12,'2017-05-14 13:27:57'),(8,NULL,'new hint for challenge 1, go check',12,'2017-05-14 13:41:56'),(9,NULL,'this is a very long text. We apologize for it being so long',4,'2017-05-14 13:41:56');
 /*!40000 ALTER TABLE `alerts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -52,10 +53,10 @@ DROP TABLE IF EXISTS `categories`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `categories` (
   `idcat` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(45) COLLATE utf8_czech_ci NOT NULL,
+  `name` varchar(45) COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (`idcat`),
   UNIQUE KEY `name_UNIQUE` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -77,11 +78,11 @@ DROP TABLE IF EXISTS `challenges`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `challenges` (
   `idchallenge` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `description` text COLLATE utf8_czech_ci NOT NULL,
-  `name` varchar(50) COLLATE utf8_czech_ci NOT NULL,
-  `file` varchar(90) COLLATE utf8_czech_ci DEFAULT NULL,
+  `description` text COLLATE utf8_bin NOT NULL,
+  `name` varchar(50) COLLATE utf8_bin NOT NULL,
+  `file` varchar(90) COLLATE utf8_bin DEFAULT NULL,
   `category` int(11) unsigned NOT NULL,
-  `flaghash` char(128) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+  `flaghash` char(128) COLLATE utf8_bin NOT NULL,
   `points` int(11) NOT NULL,
   `is_flash` tinyint(1) NOT NULL DEFAULT '0',
   `opentime` timestamp NULL DEFAULT NULL,
@@ -89,6 +90,7 @@ CREATE TABLE `challenges` (
   `hidden` tinyint(1) NOT NULL DEFAULT '0',
   `solutions` int(11) unsigned NOT NULL DEFAULT '0',
   `nextopen` int(11) unsigned DEFAULT NULL,
+  `metadata` varchar(500) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`idchallenge`),
   UNIQUE KEY `name_UNIQUE` (`name`),
   KEY `fk_challenges_categories` (`category`),
@@ -98,7 +100,7 @@ CREATE TABLE `challenges` (
   KEY `fk_opens_idx` (`nextopen`),
   CONSTRAINT `fk_category` FOREIGN KEY (`category`) REFERENCES `categories` (`idcat`) ON UPDATE CASCADE,
   CONSTRAINT `fk_opens` FOREIGN KEY (`nextopen`) REFERENCES `challenges` (`idchallenge`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -107,7 +109,7 @@ CREATE TABLE `challenges` (
 
 LOCK TABLES `challenges` WRITE;
 /*!40000 ALTER TABLE `challenges` DISABLE KEYS */;
-INSERT INTO `challenges` VALUES (1,'Get the door code to stop the squirrel invasion!','Chocolate Factory','aaaaaaaaaaaaaa.txt',1,'asfdafasgagagsaffa',5000,0,'1970-01-31 23:00:01',NULL,0,0,NULL),(2,'Challenge2 is wow','Challenge2',NULL,2,'asdafagasfa',3334,0,'1970-01-31 23:00:01',NULL,0,0,NULL);
+INSERT INTO `challenges` VALUES (1,'Get the door code to stop the squirrel invasion!','Chocolate Factory','aaaaaaaaaaaaaa.txt',1,'asfdafasgagagsaffa',5000,0,'1970-01-31 23:00:01',NULL,0,2,NULL,NULL),(2,'Challenge2 is wow','Challenge2',NULL,2,'asdafagasfa',3334,0,'1970-01-31 23:00:01',NULL,0,0,NULL,NULL);
 /*!40000 ALTER TABLE `challenges` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -123,7 +125,7 @@ SET character_set_client = utf8;
  1 AS `id`,
  1 AS `name`,
  1 AS `country`,
- 1 AS `points`*/;
+ 1 AS `computed_points`*/;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -151,12 +153,12 @@ DROP TABLE IF EXISTS `ipteams`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `ipteams` (
   `idteam` int(11) unsigned NOT NULL,
-  `ip` varchar(30) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+  `ip` varchar(30) COLLATE utf8_bin NOT NULL,
   UNIQUE KEY `uniq` (`idteam`,`ip`),
   KEY `ip` (`ip`) USING BTREE,
   KEY `team` (`idteam`) USING HASH,
   CONSTRAINT `fk_owning_team` FOREIGN KEY (`idteam`) REFERENCES `team` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -181,7 +183,7 @@ CREATE TABLE `solutions` (
   `idchallenge` int(11) unsigned NOT NULL,
   `idteam` int(11) unsigned NOT NULL,
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `earnedpoints` int(11) DEFAULT NULL,
+  `bonus` int(11) DEFAULT NULL,
   `opened` tinyint(4) DEFAULT NULL,
   PRIMARY KEY (`idsolution`),
   KEY `fk_solutions_squadre1` (`idteam`),
@@ -189,7 +191,7 @@ CREATE TABLE `solutions` (
   KEY `solvedby` (`idchallenge`,`idteam`),
   CONSTRAINT `fk_solved_challenge` FOREIGN KEY (`idchallenge`) REFERENCES `challenges` (`idchallenge`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_solving_team` FOREIGN KEY (`idteam`) REFERENCES `team` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -198,6 +200,7 @@ CREATE TABLE `solutions` (
 
 LOCK TABLES `solutions` WRITE;
 /*!40000 ALTER TABLE `solutions` DISABLE KEYS */;
+INSERT INTO `solutions` VALUES (1,1,1,'2017-06-14 07:30:49',100,NULL),(2,1,2,'2017-06-14 07:31:39',100,NULL);
 /*!40000 ALTER TABLE `solutions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -210,30 +213,30 @@ DROP TABLE IF EXISTS `team`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `team` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(25) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
-  `password` char(128) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
-  `email` varchar(80) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+  `name` varchar(25) COLLATE utf8_bin NOT NULL,
+  `password` char(128) COLLATE utf8_bin NOT NULL,
+  `email` varchar(80) COLLATE utf8_bin NOT NULL,
   `sshkey` blob,
-  `ip` varchar(30) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
-  `ua` text CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+  `ip` varchar(30) COLLATE utf8_bin NOT NULL,
+  `ua` text COLLATE utf8_bin NOT NULL,
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `confirmcode` char(50) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
-  `confirmip` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
-  `confirmua` text CHARACTER SET utf8 COLLATE utf8_bin,
+  `confirmcode` char(50) COLLATE utf8_bin DEFAULT NULL,
+  `confirmip` varchar(20) COLLATE utf8_bin DEFAULT NULL,
+  `confirmua` text COLLATE utf8_bin,
   `hidden` tinyint(1) NOT NULL DEFAULT '0',
   `points` int(11) unsigned NOT NULL DEFAULT '0',
   `lastsolution` timestamp NULL DEFAULT NULL,
   `minage` int(11) DEFAULT NULL,
   `maxage` int(11) DEFAULT NULL,
-  `country` varchar(20) COLLATE utf8_czech_ci DEFAULT NULL,
+  `country` varchar(20) COLLATE utf8_bin DEFAULT NULL,
   `size` int(11) DEFAULT NULL,
-  `website` text CHARACTER SET utf8 COLLATE utf8_bin,
-  `reset_token` varchar(45) COLLATE utf8_czech_ci DEFAULT NULL,
+  `website` text COLLATE utf8_bin,
+  `reset_token` varchar(45) COLLATE utf8_bin DEFAULT NULL,
   `reset_timestamp` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email_UNIQUE` (`email`),
   UNIQUE KEY `name_UNIQUE` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -269,46 +272,60 @@ sp: BEGIN
     DECLARE secs INT;
 	declare newChallenge int;
 
+	# has this team already solved this challenge?
     SET cnt = (SELECT COUNT(*) FROM solutions WHERE idteam=teamid and idchallenge=challenge);
     IF(cnt > 0) THEN
         set pts=-1;
         LEAVE sp;
     END IF;
+    
     set myts = NOW();
+    
+    # add a new solution
     INSERT INTO solutions SET idchallenge=challenge, idteam=teamid,ts=myts;
     set myid = LAST_INSERT_ID();
+    
+	
     SET cnt = (SELECT COUNT(*) FROM solutions WHERE idchallenge=challenge and ts < myts);
-    SET pts = (SELECT points FROM challenges WHERE idchallenge=challenge);
-    SET maxpts=pts;
     SET fl = (SELECT is_flash FROM challenges WHERE idchallenge=challenge);
+    
+    # take base points for the challenge
+    SET pts = 100; #(SELECT points FROM challenges WHERE idchallenge=challenge);
+    
     CASE cnt
         WHEN 0 THEN SET pts = pts * 1.15;
         WHEN 1 THEN SET pts = pts * 1.10;
         WHEN 2 THEN SET pts = pts * 1.05;
         ELSE SET pts=pts*1;
     END CASE;
-    IF(fl = 1) THEN
-        SET @secs=(TIMESTAMPDIFF(SECOND,(SELECT opentime FROM challenges WHERE idchallenge=challenge),NOW()));
-        SET pts = (100*maxpts)*sqrt(log10(1+1/(pow(@secs,2))));
-        IF(pts > maxpts) THEN
-            SET pts=maxpts;
-        END IF;
-        IF(secs < 60) THEN
-            SET pts=maxpts;
-        END IF;
-    END IF;
-    UPDATE solutions SET earnedpoints = pts WHERE idsolution=myid;
-    update team SET points = points + pts, lastsolution = myts WHERE id = teamid;
+    
+    # if it was a flash challenge
+    #IF(fl = 1) THEN
+    #    SET @secs=(TIMESTAMPDIFF(SECOND,(SELECT opentime FROM challenges WHERE idchallenge=challenge),NOW()));
+    #    SET pts = (100*maxpts)*sqrt(log10(1+1/(pow(@secs,2))));
+    #    IF(pts > maxpts) THEN
+    #        SET pts=maxpts;
+    #    END IF;
+    #    IF(secs < 60) THEN
+    #        SET pts=maxpts;
+    #    END IF;
+    #END IF;
+    
+    UPDATE solutions SET bonus = pts WHERE idsolution=myid;
     UPDATE challenges SET solutions=solutions+1 WHERE idchallenge=challenge;
+    #update team SET points = points + pts, lastsolution = myts WHERE id = teamid;
 
+	# If a challenge has been solved for the first time, open the challenge challenge.nextopen (if any)
     IF(cnt=0) THEN
-		-- Time to open a new one! Find the id
+    
+		-- Time to open a new challenge! Find the id
 		set newChallenge = (select cnew.idchallenge
 						        from challenges cnew inner join challenges cold
 								     on cnew.idchallenge = cold.nextopen  
 							    where cold.idchallenge=challenge);
 		-- Open the challenge
 		update challenges set opentime = now() where idchallenge=newChallenge;
+        
 		-- Notify all teams
 		insert into alerts set
 			text = concat("Team ", (select name from team where id=teamid),
@@ -370,7 +387,7 @@ DELIMITER ;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `classifica` AS select `team`.`id` AS `id`,`team`.`name` AS `name`,`team`.`country` AS `country`,`team`.`points` AS `points` from `team` where ((`team`.`hidden` = 0) and (`team`.`points` > 0)) order by `team`.`points` desc,`team`.`lastsolution`,`team`.`id` */;
+/*!50001 VIEW `classifica` AS select `t`.`id` AS `id`,`t`.`name` AS `name`,`t`.`country` AS `country`,ceiling(sum(((`s`.`bonus` / 100) * `cs`.`points`))) AS `computed_points` from ((`team` `t` left join `solutions` `s` on((`t`.`id` = `s`.`idteam`))) left join `commonstatus` `cs` on((`s`.`idchallenge` = `cs`.`idchallenge`))) where (`t`.`hidden` = 0) group by `t`.`id` having (`computed_points` > 0) order by `computed_points` desc,`t`.`lastsolution`,`t`.`id` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -388,7 +405,7 @@ DELIMITER ;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `commonstatus` AS select `c`.`idchallenge` AS `idchallenge`,`c`.`points` AS `points`,(`c`.`opentime` < now()) AS `open`,count(`s`.`idchallenge`) AS `numsolved`,`c`.`is_flash` AS `is_flash` from ((`challenges` `c` left join `solutions` `s` on((`s`.`idchallenge` = `c`.`idchallenge`))) left join `team` `t` on((`t`.`id` = `s`.`idteam`))) where (((`c`.`opentime` < now()) or (not(`c`.`is_flash`))) and (not(ifnull(`t`.`hidden`,false))) and (not(`c`.`hidden`))) group by `c`.`idchallenge` */;
+/*!50001 VIEW `commonstatus` AS select `c`.`idchallenge` AS `idchallenge`,ceiling(((498.3 * exp((-(`c`.`solutions`) / 59.47))) + 10)) AS `points`,(`c`.`opentime` < now()) AS `open`,count(`s`.`idchallenge`) AS `numsolved`,`c`.`is_flash` AS `is_flash` from ((`challenges` `c` left join `solutions` `s` on((`s`.`idchallenge` = `c`.`idchallenge`))) left join `team` `t` on((`t`.`id` = `s`.`idteam`))) where (((`c`.`opentime` < now()) or (not(`c`.`is_flash`))) and (not(ifnull(`t`.`hidden`,false))) and (not(`c`.`hidden`))) group by `c`.`idchallenge` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -402,4 +419,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-05-14 11:03:33
+-- Dump completed on 2017-06-23 11:31:23

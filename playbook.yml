@@ -52,14 +52,14 @@
 
   - name: Copy polictf initial dump file
     copy:
-      src: devconf/dbdump
+      src: devconf/dbdump.sql
       dest: /tmp
 
   - name: Restore polictf database from dump
     mysql_db:
       name: polictf
       state: import
-      target: /tmp/dbdump
+      target: /tmp/dbdump.sql
 
   - name: upload and uncompress polictf-server
     unarchive:
