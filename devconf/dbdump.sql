@@ -129,6 +129,32 @@ SET character_set_client = utf8;
 SET character_set_client = @saved_cs_client;
 
 --
+-- Table structure for table `classifica_mv`
+--
+
+DROP TABLE IF EXISTS `classifica_mv`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `classifica_mv` (
+  `id` int(11) NOT NULL,
+  `name` varchar(25) COLLATE utf8_bin DEFAULT NULL,
+  `country` varchar(20) COLLATE utf8_bin DEFAULT NULL,
+  `computed_points` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='materialized view (classifica)';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `classifica_mv`
+--
+
+LOCK TABLES `classifica_mv` WRITE;
+/*!40000 ALTER TABLE `classifica_mv` DISABLE KEYS */;
+INSERT INTO `classifica_mv` VALUES (1,'Hanoiati','Italy',492),(2,'Team17',NULL,492);
+/*!40000 ALTER TABLE `classifica_mv` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Temporary table structure for view `commonstatus`
 --
 
@@ -266,9 +292,9 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `SolvedChallenge`(in teamid int,in c
 sp: BEGIN
     DECLARE cnt INT;
     DECLARE myid INT;
-    DECLARE fl INT;
+    #DECLARE fl INT;
     DECLARE myts TIMESTAMP;
-    DECLARE maxpts INT;
+    DECLARE bonus INT;
     DECLARE secs INT;
 	declare newChallenge int;
 
@@ -285,21 +311,23 @@ sp: BEGIN
     INSERT INTO solutions SET idchallenge=challenge, idteam=teamid,ts=myts;
     set myid = LAST_INSERT_ID();
     
-	
     SET cnt = (SELECT COUNT(*) FROM solutions WHERE idchallenge=challenge and ts < myts);
-    SET fl = (SELECT is_flash FROM challenges WHERE idchallenge=challenge);
     
-    # take base points for the challenge
-    SET pts = 100; #(SELECT points FROM challenges WHERE idchallenge=challenge);
+    # Computing and setting bonus for the current solution
     
-    CASE cnt
-        WHEN 0 THEN SET pts = pts * 1.15;
-        WHEN 1 THEN SET pts = pts * 1.10;
-        WHEN 2 THEN SET pts = pts * 1.05;
-        ELSE SET pts=pts*1;
-    END CASE;
+    # base bonus for the challenge (in hundreds)
+    SET pts = 100;
     
-    # if it was a flash challenge
+    # optional first-blood bonus (uncomment me to enable)
+    #CASE cnt
+    #    WHEN 0 THEN SET pts = pts * 1.15;
+    #    WHEN 1 THEN SET pts = pts * 1.10;
+    #    WHEN 2 THEN SET pts = pts * 1.05;
+    #    ELSE SET pts=pts*1;
+    #END CASE;
+    
+    # flash_challenges handling (OUT-OF-DATE, TO UPDATE)
+    #SET fl = (SELECT is_flash FROM challenges WHERE idchallenge=challenge);
     #IF(fl = 1) THEN
     #    SET @secs=(TIMESTAMPDIFF(SECOND,(SELECT opentime FROM challenges WHERE idchallenge=challenge),NOW()));
     #    SET pts = (100*maxpts)*sqrt(log10(1+1/(pow(@secs,2))));
@@ -313,9 +341,14 @@ sp: BEGIN
     
     UPDATE solutions SET bonus = pts WHERE idsolution=myid;
     UPDATE challenges SET solutions=solutions+1 WHERE idchallenge=challenge;
-    #update team SET points = points + pts, lastsolution = myts WHERE id = teamid;
-
-	# If a challenge has been solved for the first time, open the challenge challenge.nextopen (if any)
+    
+    # UPDATE MATERIALIZED VIEW CLASSIFICA
+    TRUNCATE TABLE classifica_mv;
+    INSERT INTO classifica_mv SELECT * from classifica;
+    
+	# Next challenge opening:
+    
+	# If a challenge has been solved for the first time, automatically open the challenge challenge.nextopen (if any)
     IF(cnt=0) THEN
     
 		-- Time to open a new challenge! Find the id
@@ -419,4 +452,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-06-23 11:31:23
+-- Dump completed on 2017-06-23 12:40:49

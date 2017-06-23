@@ -370,7 +370,7 @@ std::string dbcontroller::getScores() {
     return this->cachedQuery(
         srv->settings().get<int>("cache.timeout.scores"), "scores",
         [](std::shared_ptr<QSqlQuery> stmt) {
-            return stmt->prepare("SELECT * FROM classifica;");
+            return stmt->prepare("SELECT * FROM classifica_mv;");
         },
         [](cppcms::json::value & ret, std::shared_ptr<QSqlQuery> stmt) {
             int i = 0;
@@ -544,7 +544,7 @@ teamInfo dbcontroller::fetchTeamInfo(int teamId) {
     std::shared_ptr<QSqlQuery> sqlQuery(new QSqlQuery(this->db));
 
     bool ok = doQuery(sqlQuery, [&](std::shared_ptr<QSqlQuery> stmt) {
-        if (!stmt->prepare("SELECT id, name, computed_points from classifica where id=:id")) return false;
+        if (!stmt->prepare("SELECT id, name, computed_points from classifica_mv where id=:id")) return false;
         stmt->bindValue("id", teamId);
         return true;
     });
