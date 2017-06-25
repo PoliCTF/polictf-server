@@ -168,13 +168,19 @@ public:
         session().clear();
         session().reset_session();
 
-        int tid = db->login(request().post("teamname"), request().post("password"));
+        try {
+            int tid = db->login(request().post("teamname"), request().post("password"));
 
-        if (tid > 0) {
-            session().set("teamid", tid);
-            response().out() << "{\"r\":1}";
-        } else {
-            response().out() << "{\"r\":0}";
+            if (tid > 0) {
+                session().set("teamid", tid);
+                response().out() << "{\"r\":1}";
+            } else {
+                response().out() << "{\"r\":0, \"reason\":\"Wrong username or password.\"}";
+            }
+        } catch(dbException& dbe) {
+            response().out() << "{\"r\":0, \"reason\":\"Ouch! A technical error occurred during login. Please try again later.\"}";
+        } catch(loginException& le) {
+            response().out() << "{\"r\":0, \"reason\":\"" << le.what() << "\"}";
         }
     }
 

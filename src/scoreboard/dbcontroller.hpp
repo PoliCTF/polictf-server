@@ -7,12 +7,27 @@
 #include <mutex>
 #include <thread>
 #include <string>
+#include <exception>
 
 #include <cppcms/http_context.h>
 #include <cppcms/json.h>
 
 #include <QtSql>
 
+
+class loginException: public std::runtime_error {
+    public:
+        loginException(std::string const& msg):
+            std::runtime_error(msg)
+        {}
+};
+
+class dbException: public std::runtime_error {
+    public:
+        dbException(std::string const& msg):
+            std::runtime_error(msg)
+    {}
+};
 
 class dbcontroller {
 public:

@@ -124,33 +124,49 @@ int dbcontroller::login(std::string tname, std::string password) {
     std::shared_ptr<QSqlQuery> stmt(new QSqlQuery(this->db));
 
     bool ok = doQuery(stmt, [&](std::shared_ptr<QSqlQuery> stmt) {
-        if (!stmt->prepare("CALL verify_login(:nome,:psw,@idt);")) return false;
-        stmt->bindValue("nome", QString::fromStdString(tname));
-        stmt->bindValue("psw", QString::fromStdString(password));
+        if (!stmt->prepare("CALL verify_login(:nome,:psw, @idt, @isactive);")) return false;
+        stmt->bindValue(":nome", QString::fromStdString(tname));
+        stmt->bindValue(":psw", QString::fromStdString(password));
         return true;
     });
 
     if (!ok) {
         BOOSTER_ERROR("scoreboard") << "verify_login() failed, aborting";
-        return false;
+        throw dbException("DB error");
+        //return false;
     }
 
-    stmt->exec("select @idt as id from dual;");
+    stmt->exec("SELECT @idt is not null as success, @idt, @isactive;");
 
-    if (!stmt->isActive()) {
-        return false;
+    if(!stmt->isActive()) {
+        throw dbException("DB error");
     }
 
     if ((stmt->size()) != 1) {
         cur_ctx->cache().store_data(ss.str(), t, -1);
         return false;
-    } else {
-        stmt->next();
-        t.valid = 1;
-        t.id = stmt->record().value(0).toInt();
-        cur_ctx->cache().store_data(ss.str(), t, -1);
-        return t.id;
     }
+
+    stmt->next();
+
+    int success = stmt->record().value(0).toBool();
+    int idt = stmt->record().value(1).toInt();
+    int isactive = stmt->record().value(2).toBool();
+
+    if(!success) {
+        cur_ctx->cache().store_data(ss.str(), t, -1);
+        return false;
+    }
+
+    if(!isactive) {
+        // team registered, password OK, but not confirmed
+        throw loginException("Team e-mail not yet confirmed. Did you click on the link in the confirmation e-mail?");
+    }
+
+    t.valid = 1;
+    t.id = idt;
+    cur_ctx->cache().store_data(ss.str(), t, -1);
+    return t.id;
 }
 
 void dbcontroller::logIP(int teamid) {
@@ -161,7 +177,6 @@ void dbcontroller::logIP(int teamid) {
     std::string IP = cur_ctx->request().remote_addr();
 
     BOOSTER_NOTICE("scoreboard") << "team " << teamid << " has IP " << IP;
-    // IN PRODUCTION ENV: string IP = cur_ctx->request().getenv("HTTP_X_FORWARDED_FOR"); // TO BE TESTED
     if (cur_ctx->cache().fetch_data(ss.str(), ti)) {
         for (std::vector<std::string>::iterator it = ti.seenip.begin(); it != ti.seenip.end(); ++it) {
             if (IP.compare(*it) == 0) {
@@ -370,14 +385,14 @@ std::string dbcontroller::getScores() {
     return this->cachedQuery(
         srv->settings().get<int>("cache.timeout.scores"), "scores",
         [](std::shared_ptr<QSqlQuery> stmt) {
-            return stmt->prepare("SELECT * FROM classifica_mv;");
+            return stmt->prepare("SELECT * FROM classifica;");
         },
         [](cppcms::json::value & ret, std::shared_ptr<QSqlQuery> stmt) {
             int i = 0;
-            
+
             while (stmt->next()) {
                 ret[i]["name"] = stmt->record().value("name").toString().toStdString();
-                ret[i]["points"] = stmt->record().value("computed_points").toInt();
+                ret[i]["points"] = stmt->record().value("points").toInt();
                 ret[i]["country"] = stmt->record().value("country").toString().toStdString();
                 ++i;
             }
@@ -544,7 +559,7 @@ teamInfo dbcontroller::fetchTeamInfo(int teamId) {
     std::shared_ptr<QSqlQuery> sqlQuery(new QSqlQuery(this->db));
 
     bool ok = doQuery(sqlQuery, [&](std::shared_ptr<QSqlQuery> stmt) {
-        if (!stmt->prepare("SELECT id, name, computed_points from classifica_mv where id=:id")) return false;
+        if (!stmt->prepare("SELECT id, name, points from team where id=:id")) return false;
         stmt->bindValue("id", teamId);
         return true;
     });
@@ -561,7 +576,7 @@ teamInfo dbcontroller::fetchTeamInfo(int teamId) {
 
     sqlQuery->next();
     teamInfo.name = sqlQuery->record().value("name").toString().toStdString();
-    teamInfo.points = sqlQuery->record().value("computed_points").toUInt();
+    teamInfo.points = sqlQuery->record().value("points").toUInt();
     cur_ctx->cache().store_data(
         cacheKey.str(), teamInfo, this->makeStringSet(trigger.str()),
         srv->settings().get<int>("cache.timeout.teaminfo")

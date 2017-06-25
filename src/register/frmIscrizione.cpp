@@ -13,12 +13,13 @@ frmIscrizione::frmIscrizione():
     password("^.*(?=.{8,90})(?=.*\\d.*)(?=.*[a-zA-Z].*).*$"),
     country("^[a-zA-Z .,()]*$"),
     website("^(?:https?://.+)?$"),
+    twitter("^(@?[a-zA-Z0-9]{1,15})?$"),
     rules(),
-    email(), //è un widget di tipo email, quindi non serve specificare una regexp
+    email() //è un widget di tipo email, quindi non serve specificare una regexp
     /* sshkey("^ssh-(rsa|dsa|ecdsa) [a-zA-Z/0-9+=]{3,}\\s*[@a-zA-Z0-9-_]*$"), */
-    size(),
+    /* size(),
     age_youngest(),
-    age_oldest()
+    age_oldest() */
 {
     name.name("name");
     email.name("email");
@@ -27,9 +28,10 @@ frmIscrizione::frmIscrizione():
     rules.name("rules");
     country.name("country");
     website.name("website");
-    size.name("size");
+    twitter.name("twitter");
+    /*size.name("size");
     age_youngest.name("age_youngest");
-    age_oldest.name("age_oldest");
+    age_oldest.name("age_oldest");*/
 
     add(name);
     add(email);
@@ -37,11 +39,12 @@ frmIscrizione::frmIscrizione():
     add(rules);
     add(country);
     add(website);
+    add(twitter);
 
     /* add(sshkey); */
-    add(size);
+    /*add(size);
     add(age_youngest);
-    add(age_oldest);
+    add(age_oldest); */
 }
 
 frmIscrizione::~frmIscrizione() {}
@@ -64,9 +67,13 @@ bool frmIscrizione::validate() {
     if (!country.validate()) {
         errors.push_back("Please provide a valid country name");
     }
-    
+
     if (!website.validate()) {
         errors.push_back("Please type a valid URL.");
+    }
+
+    if (!twitter.validate()) {
+        errors.push_back("Please type a valid Twitter username.");
     }
 
     /* if (!sshkey.validate()) {
@@ -82,7 +89,7 @@ bool frmIscrizione::validate() {
         sshkey.value("");
     } */
 
-    if (!size.set()) {
+    /*if (!size.set()) {
         size.value(-1);
     }
 
@@ -92,10 +99,14 @@ bool frmIscrizione::validate() {
 
     if (!age_oldest.set()) {
         age_oldest.value(-1);
-    }
+    }*/
 
     if (!website.set()) {
         website.value("");
+    }
+
+    if (!twitter.set()) {
+        twitter.value("");
     }
 
     if (!rules.value()) {
@@ -104,7 +115,7 @@ bool frmIscrizione::validate() {
     }
 
     if (dbc->checkDuplicates(name.value(), email.value())) {
-        errors.push_back("Looks like you're already registered. Please choose another name and/or change email address.");
+        errors.push_back("Looks like you're already registered. Please choose another name and/or change email address (both need to be unique!).");
         return false;
     }
 
