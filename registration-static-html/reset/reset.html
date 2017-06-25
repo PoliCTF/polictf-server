@@ -1,0 +1,124 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <script src="/assets/js/jquery.min.js"></script>
+    <script src="/assets/js/bootstrap.min.js"></script>
+    <script src="/assets/js/validator.js"> </script>
+    <script src="/assets/js/formhelpers.min.js"> </script>
+    <script src="/assets/js/register.js"></script>
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/assets/css/formhelpers.min.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    
+    <title>polictf 2017 | Reset Password </title>
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="/assets/js/html5shiv.js"></script>
+        <script src="/assets/js/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+    <header class="navbar navbar-inverse">
+        <div class="navbar-container">
+        <div class="navbar-header">
+            <span class="navbar-brand"><a href="http://www.polictf.it/"><span class="logo-draw">\> </span><span class="logo-poli">poli</span><span class="logo-ctf">ctf</span></a></span>
+
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+        </div>
+        <nav class="collapse navbar-collapse" id="bs-example-navbar-collapse-1" role="navigation">
+          <ul class="nav navbar-nav navbar-right">
+            
+            
+                <li><a href="http://www.polictf.it/instructions.html">Instructions</a></li>
+            
+                <li ><a href="http://www.polictf.it/archive.html">Past Editions</a></li>
+
+                <li ><a href="/">Register</a></li>
+            
+            <li class="no-before"><a href="https://twitter.com/towerofhanoi" target="_blank"><span class="fa fa-twitter"></span></a></li>
+            <li class="no-before"><a href="mailto:info@polictf.it"><span class="fa fa-envelope"></span></a></li>
+          </ul>
+        </nav>
+        </div>
+    </header>
+
+   <div class="container">
+<section id="main-content">
+
+  <div>
+    <h1 id="reset">Password Reset</h1>
+        <div class="main-text">
+            <div id="reg-feedback" role="alert"></div>
+            <form class="form" action="/api/reset/init" id="reset-init-form" data-toggle="validator">
+
+                <p>To reset your password, please type below the e-mail address you used to register your team. You will shortly receive an e-mail with further instructions.</p>
+
+                  <div class="form-group">
+                    <label for="email_address">Email address</label>
+                    <input type="email" class="form-control" id="email_address" placeholder="Enter email" data-error="Mail adress not correct" required>
+                    <span class="help-block with-errors"></span>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </form>
+            <form class="form" action="/api/reset/token" id="reset-form" data-toggle="validator">
+
+                <p>Hello <span id="reset-name"></span>, please reset your password.</p>
+                
+                    <div class="form-group">
+                        <label for="password_first">Password</label>
+                        <input type="password" data-minlength="8" class="form-control" id="password_first" placeholder="Password" required>
+                        <span class="help-block">Minimum of 8 characters, containing letters and numbers</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="password_check">Repeat Password</label>
+                        <input type="password" class="form-control" id="password_check" placeholder="Repeat Password" data-error="Whoops, these don't match" data-match="#password_first" data-match-error="Whoops, these don't match" required> 
+                        <div class="help-block with-errors"></div>
+                    </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </form>
+            <div class="form-group">
+                <div id="messages"></div>
+            </div>
+        </div>
+
+  </div>
+
+</section>
+</div>
+
+    <footer class="footer">
+        <div class="container text-muted">
+            <p>Competition organized by <a href="http://toh.necst.it">Tower of Hanoi</a> and supported by the <a href="http://www.necst.it">NECSTLab</a>.</p>
+            <p>
+            <i class="fa fa-twitter" aria-hidden="true"></i> <a href="https://twitter.com/towerofhanoi">towerofhanoi</a>&nbsp;&bull; 
+            
+            <i class="fa fa-github" aria-hidden="true"></i> <a href="https://github.com/polictf">polictf</a>&nbsp;&bull; 
+            
+            <i class="fa fa-envelope" aria-hidden="true"></i> <a href="mailto:info@polictf.it">info@polictf.it</a>&nbsp;&bull; 
+            
+            <i class="fa fa-comment" aria-hidden="true"></i> <a href="https://webirc.hackint.org/#polictf">#polictf on hackint</a>
+            </p>
+            <p>Theme '<a href="https://github.com/pages-themes/hacker">Hacker</a>', customized by Tower of Hanoi</p>
+        </div>
+    </footer>
+    
+  </body>
+</html>

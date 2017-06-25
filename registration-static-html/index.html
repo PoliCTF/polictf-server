@@ -1,0 +1,150 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <script src="/assets/js/jquery.min.js"></script>
+    <script src="/assets/js/validator.js"> </script>
+    <script src="/assets/js/formhelpers.min.js"> </script>
+    <script src="/assets/js/register.js"></script>
+    <script src="/assets/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/assets/css/formhelpers.min.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    
+    <title>polictf 2017 | Register </title>
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="/assets/js/html5shiv.js"></script>
+        <script src="/assets/js/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+    <header class="navbar navbar-inverse">
+        <div class="navbar-container">
+        <div class="navbar-header">
+            <span class="navbar-brand"><a href="http://www.polictf.it/"><span class="logo-draw">\> </span><span class="logo-poli">poli</span><span class="logo-ctf">ctf</span></a></span>
+
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+        </div>
+        <nav class="collapse navbar-collapse" id="bs-example-navbar-collapse-1" role="navigation">
+          <ul class="nav navbar-nav navbar-right">
+            
+            
+                <li><a href="http://www.polictf.it/instructions.html">Instructions</a></li>
+            
+                <li ><a href="http://www.polictf.it/archive.html">Past Editions</a></li>
+
+                <li class="active"><a href="/">Register</a></li>
+            
+            <li class="no-before"><a href="https://twitter.com/towerofhanoi" target="_blank"><span class="fa fa-twitter"></span></a></li>
+            <li class="no-before"><a href="mailto:info@polictf.it"><span class="fa fa-envelope"></span></a></li>
+          </ul>
+        </nav>
+        </div>
+    </header>
+
+   <div class="container">
+<section id="main-content">
+
+  <div>
+    <h1 id="register">Register</h1>
+
+
+    <p>Welcome on board! Complete the form below to register your team for PoliCTF 2017.</p>
+    <p>Only one registration per <b>team</b> is needed. Dashboard login available when the competition starts.</p>
+    <p>Forgotten password? <a href="/reset">Reset it here</a>.</p>
+
+        <div class="main-text">
+            <div id="reg-feedback" role="alert"></div>
+            <form class="form" action="/api/subscribe" id="reg-form" data-toggle="validator">
+                <div class="form-group">
+                    <label for="name">Team name</label>
+                    <input type="text" class="form-control" pattern="^[a-zA-Z0-9 -_]{3,25}$" maxlength="25" id="name" placeholder="Your Team Name" data-error required>
+                    <span class="help-block">Minimum of 3, and up to 25 characters. Allowed characters: [a-zA-Z0-9 -_]</span>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" data-minlength="8" class="form-control" id="password" placeholder="Password" required>
+                    <span class="help-block">Minimum of 8 characters, containing letters and numbers</span>
+                </div>
+                <div class="form-group">
+                    <label for="password_check">Repeat Password</label>
+                    <input type="password" class="form-control" id="password_check" placeholder="Repeat Password" data-error="Whoops, these don't match" data-match="#password" data-match-error="Whoops, these don't match" required> 
+                    <div class="help-block with-errors"></div>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email address</label>
+                    <input type="email" class="form-control" id="email" placeholder="Enter email" data-error="Mail adress not correct" required>
+                    <span class="help-block with-errors"></span>
+                </div>
+                <div class="form-group">
+                    <label for="email_address_confirm">Confirm Email address</label>
+                    <input type="email" class="form-control" id="email_address_confirm" placeholder="Enter email" data-error="Whoops, these don't match" data-match="#email" required>
+                    <span class="help-block with-errors"></span>
+                </div>
+                <div class="form-group">
+                    <label for="country">Country</label>
+                    <div class="bfh-selectbox bfh-countries" data-flags="true" data-blank="false" data-country="IT"></div>
+                </div>
+                <div class="form-group">
+                    <label for="website">Website</label>
+                    <input class="form-control" id="website" placeholder="Website">
+                </div>
+                <div class="form-group">
+                    <label for="twitter">Twitter username</label>
+                    <input class="form-control" id="twitter" placeholder="Twitter username">
+                </div>
+                <div class="form-group">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="check_rules" data-error="You must accept the rules ;)" required>I accept the <a href="http://www.polictf.it/instructions.html" target="_blank">rules</a>
+                            <div class="help-block with-errors"></div>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+                <div class="small">We will use your contact information only to send important communications regarding the PoliCTF competition, and (very sporadically) to inform you of future events. After filing in the form, you will receive an e-mail with a link to confirm your account. If you don't receive it, please check your junk e-mail folder.</div>
+            </form>
+            <div class="form-group">
+                <div id="messages"></div>
+            </div>
+        </div>
+
+  </div>
+
+</section>
+</div>
+
+    <footer class="footer">
+        <div class="container text-muted">
+            <p>Competition organized by <a href="http://toh.necst.it">Tower of Hanoi</a> and supported by the <a href="http://www.necst.it">NECSTLab</a>.</p>
+            <p>
+            <i class="fa fa-twitter" aria-hidden="true"></i> <a href="https://twitter.com/towerofhanoi">towerofhanoi</a>&nbsp;&bull; 
+            
+            <i class="fa fa-github" aria-hidden="true"></i> <a href="https://github.com/polictf">polictf</a>&nbsp;&bull; 
+            
+            <i class="fa fa-envelope" aria-hidden="true"></i> <a href="mailto:info@polictf.it">info@polictf.it</a>&nbsp;&bull; 
+            
+            <i class="fa fa-comment" aria-hidden="true"></i> <a href="https://webirc.hackint.org/#polictf">#polictf on hackint</a>
+            </p>
+            <p>Theme '<a href="https://github.com/pages-themes/hacker">Hacker</a>', customized by Tower of Hanoi</p>
+        </div>
+    </footer>
+    
+  </body>
+</html>
