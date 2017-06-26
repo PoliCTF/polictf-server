@@ -1,0 +1,128 @@
+Cache usages:
+
+register:
+=========
+
+
+exists_name_*
+exists_email_*
+isspammer_*
+set by:
+    dbcontroller::checkDuplicates, timeout 300
+cleared by:
+    dbcontroller::insert (for the inserted team), in case of team name reuse
+
+
+confirmkey_*
+set by:
+    dbcontroller::confirm, timeout 300 (seems as a mean to rate/limit)
+cleared by:
+    none
+
+
+scoreboard:
+===========
+
+login_$team_$password
+set by:
+    dbcontroller::login
+cleared by:
+    none
+notes:
+    also set on failure
+    cache could be filled by failed attempts
+    a team can login after it resets its password
+    a team can't login if it tries a password, fails, then they reset password to it
+
+
+teamip_$teamid
+set by:
+    dbcontroller::logIP (to check if ip is already known for that team)
+cleared by:
+    none
+notes:
+    only used 
+
+
+challenge_sol_$flag
+set by:
+    dbcontroller::fetchSolution  (to cache result of if flag is valid)
+cleared by:
+    none
+notes:
+    once a flag is valid/invalid it'll stay so for a while
+    in the query it also checks opentime < NOW() so a flag that is invalid may become valid (but this is very unlikely to be a problem)
+    timeout is configurable
+
+
+teamsolved_$team
+cleared by:
+    dbcontroller::setChallengeSolved
+    verifier::verify
+notes:
+    acts as trigger for both challenges_$team and teaminfo_$team
+
+
+challenges_$team
+set by:
+    dbcontroller::fetchSolutionsForTeam (specifying teamsolved_$team as trigger) (not used)
+used by:
+    TeamStatus::TeamStatus
+cleared by:
+    (indirectly) dbcontroller::setChallengeSolved
+notes:
+    with the new score system, cache for all teams should be invalidated. It can be easily done by adding a trigger clear_scores to all data.
+
+
+alerts_$team
+set by:
+    dbcontroller::fetchAlertsForTeam (not used)
+used by:
+    TeamStatus::TeamStatus
+cleared by:
+    none
+
+
+teaminfo_$team
+set by:
+    dbcontroller::fetchTeamInfo (specifies teamsolved_$team as trigger)
+used by:
+    TeamStatus::TeamStatus
+
+
+last_submission_$teamid
+set by:
+    verifier::verify
+cleard by:
+    noone
+note:
+    rate limit purpose only
+
+
+scores
+set by:
+    dbcontroller::getScores
+cleared by:
+    verifier::verify
+
+
+status
+set by:
+    dbcontroller::getCommonStatus
+cleared by:
+    verifier::verify
+
+
+challenges
+set by:
+    dbcontroller::getChallengesSummary
+
+
+globalwarnings
+set by:
+    dbcontroller::getGlobalWarnings
+
+
+challengetext_$id
+set by:
+    dbcontroller::getChallenge
