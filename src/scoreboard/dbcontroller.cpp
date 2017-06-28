@@ -111,15 +111,11 @@ std::shared_ptr<dbcontroller> dbcontroller::getInstance() {
 }
 
 int dbcontroller::login(std::string tname, std::string password) {
-    std::stringstream ss;
-    ss.str("");
-    ss << "login_" << tname << "$$$$" << password ;
-    team t;
-    t.valid = 0;
-
-    if (cur_ctx->cache().fetch_data(ss.str(), t)) {
-        return t.valid ? t.id : 0;
-    }
+    // FIXME - Removed caching layer for login() as interferred with the 
+    // password reset functionality and with having multiple load balanced instances.
+    // We assume that there are "few" logins from each user\team so having every
+    // request hit the database is OK --- and caching w.r.t. the team name\password does
+    // not solve any intentional DOS problem.
 
     std::shared_ptr<QSqlQuery> stmt(new QSqlQuery(this->db));
 
@@ -133,7 +129,6 @@ int dbcontroller::login(std::string tname, std::string password) {
     if (!ok) {
         BOOSTER_ERROR("scoreboard") << "verify_login() failed, aborting";
         throw dbException("DB error");
-        //return false;
     }
 
     stmt->exec("SELECT @idt is not null as success, @idt, @isactive;");
@@ -143,7 +138,6 @@ int dbcontroller::login(std::string tname, std::string password) {
     }
 
     if ((stmt->size()) != 1) {
-        cur_ctx->cache().store_data(ss.str(), t, -1);
         return false;
     }
 
@@ -154,7 +148,6 @@ int dbcontroller::login(std::string tname, std::string password) {
     int isactive = stmt->record().value(2).toBool();
 
     if(!success) {
-        cur_ctx->cache().store_data(ss.str(), t, -1);
         return false;
     }
 
@@ -163,10 +156,7 @@ int dbcontroller::login(std::string tname, std::string password) {
         throw loginException("Team e-mail not yet confirmed. Did you click on the link in the confirmation e-mail?");
     }
 
-    t.valid = 1;
-    t.id = idt;
-    cur_ctx->cache().store_data(ss.str(), t, -1);
-    return t.id;
+    return idt;
 }
 
 void dbcontroller::logIP(int teamid) {

@@ -7,14 +7,6 @@
 #include <unordered_map>
 #include <vector>
 
-struct team : public cppcms::serializable {
-    int id;
-    short valid;
-    void serialize(cppcms::archive &a) {
-        a & id & valid;
-    }
-};
-
 struct challengesol: public cppcms::serializable {
     int points;
     int id;
