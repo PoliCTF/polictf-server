@@ -111,7 +111,7 @@ std::shared_ptr<dbcontroller> dbcontroller::getInstance() {
 }
 
 int dbcontroller::login(std::string tname, std::string password) {
-    // FIXME - Removed caching layer for login() as interferred with the 
+    // FIXME - Removed caching layer for login() as interferred with the
     // password reset functionality and with having multiple load balanced instances.
     // We assume that there are "few" logins from each user\team so having every
     // request hit the database is OK --- and caching w.r.t. the team name\password does
@@ -347,7 +347,7 @@ std::string dbcontroller::getChallenge(int id) {
         },
         [=](std::shared_ptr<QSqlQuery> stmt) {
             if (!stmt->prepare(
-                "SELECT file, description, points, metadata, chall.name, cat.name as catname "
+                "SELECT file, filehash, description, points, metadata, chall.name, cat.name as catname "
                     "from challenges as chall, categories as cat "
                     "where idchallenge=:id and hidden=0 and category=idcat and opentime < NOW();"
             )) return false;
@@ -363,6 +363,7 @@ std::string dbcontroller::getChallenge(int id) {
             stmt->next();
             ret["html"] = stmt->record().value("description").toString().toStdString();
             ret["file"] = stmt->record().value("file").toString().toStdString();
+            ret["filehash"] = stmt->record().value("filehash").toString().toStdString();
             ret["name"] = stmt->record().value("name").toString().toStdString();
             ret["category"] = stmt->record().value("catname").toString().toStdString();
             ret["points"] = stmt->record().value("points").toInt();
@@ -384,6 +385,8 @@ std::string dbcontroller::getScores() {
                 ret[i]["name"] = stmt->record().value("name").toString().toStdString();
                 ret[i]["points"] = stmt->record().value("points").toInt();
                 ret[i]["country"] = stmt->record().value("country").toString().toStdString();
+                ret[i]["website"] = stmt->record().value("website").toString().toStdString();
+                ret[i]["twitter"] = stmt->record().value("twitter").toString().toStdString();
                 ++i;
             }
 

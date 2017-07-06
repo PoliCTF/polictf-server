@@ -20,6 +20,7 @@ fi
 
 echo "Starting instance..."
 
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"/usr/local/lib"
 /usr/local/bin/scoreboard -c /etc/polictf/scoreboard.conf
 chown www-data:root "$SOCKFILE"
 chmod 0660 "$SOCKFILE"

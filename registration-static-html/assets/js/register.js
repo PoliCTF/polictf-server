@@ -33,7 +33,7 @@ $(document).ready(function() {
                 // Use Ajax to submit form data
                 $.ajax({
                     method: "POST",
-                    url: "https://registration.polictf.it/api/reset/token",
+                    url: "https://register.polictf.it/api/reset/token",
                     data: { email: params['email'],
                             password: $("#password_first").val(),
                             token: params['token']
@@ -51,7 +51,7 @@ $(document).ready(function() {
                             feedbackError("&nbsp;Some data isn't correct: <div style=\"font-size: 9pt;\">" + error_t + "</div>" );
                         }
                     },
-                    error: function() { 
+                    error: function() {
                        feedbackError("&nbsp;Technical error. Please retry later.");
                     }
                 });
@@ -71,8 +71,8 @@ $(document).ready(function() {
             // Use Ajax to submit form data
             $.ajax({
                 method: "POST",
-                url: "https://registration.polictf.it/api/subscribe",
-                data: { name:  $("#name").val(), 
+                url: "https://register.polictf.it/api/subscribe",
+                data: { name:  $("#name").val(),
                         email: $("#email").val(),
                         password: $("#password").val(),
                         rules: $("#check_rules").is(":checked") ? "y" : "n",
@@ -93,7 +93,7 @@ $(document).ready(function() {
                         feedbackError("&nbsp;Some data isn't correct: <div style=\"font-size: 9pt;\">" + error_t + "</div>" );
     				}
                 },
-                error: function() { 
+                error: function() {
                    feedbackError("&nbsp;Technical error. Please retry later.");
                 }
             });
@@ -109,7 +109,7 @@ $(document).ready(function() {
             // Use Ajax to submit form data
             $.ajax({
                 method: "POST",
-                url: "https://registration.polictf.it/api/reset/init",
+                url: "https://register.polictf.it/api/reset/init",
                 data: { email: $("#email_address").val()
                 },
                 success: function(data_r) {
@@ -125,7 +125,7 @@ $(document).ready(function() {
                         feedbackError("&nbsp;Some data isn't correct: <div style=\"font-size: 9pt;\">" + error_t + "</div>" );
                     }
                 },
-                error: function() { 
+                error: function() {
                    feedbackError("&nbsp;Technical error. Please retry later.");
                 }
             });

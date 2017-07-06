@@ -74,6 +74,7 @@ verifier::response verifier::verify(std::string const& flag) {
     // 9. Invalidate all dependent caches
     cur_ctx->cache().rise("teamsolved_" + teamid);
     cur_ctx->cache().rise("scores");
+    cur_ctx->cache().rise("challenges");
 
     if (pts > data.points) {
         cur_ctx->cache().rise("status");

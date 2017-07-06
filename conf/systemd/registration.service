@@ -1,0 +1,12 @@
+[Unit]
+Description=PoliCTF registration
+
+[Service]
+Type=forking
+PIDFile=/tmp/polictf-registration.lock
+WorkingDirectory=/etc/polictf
+ExecStart=/etc/polictf/run-registration.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

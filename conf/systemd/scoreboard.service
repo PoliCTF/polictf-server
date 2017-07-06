@@ -1,0 +1,12 @@
+[Unit]
+Description=PoliCTF scoreboard
+
+[Service]
+Type=forking
+PIDFile=/tmp/polictf-scoreboard.lock
+WorkingDirectory=/etc/polictf
+ExecStart=/etc/polictf/run-scoreboard.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
